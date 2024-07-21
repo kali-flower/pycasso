@@ -72,24 +72,38 @@ class Slider:
         self.height = height
         self.min_value = min_value
         self.max_value = max_value
-        self.value = initial_value
+        self.value = initial_value  
         self.callback = callback
+        self.handle_height = 20
+        self.track_thickness = self.handle_height + 15  # make track thickness 15 px thicker 
+        self.is_being_interacted = False  # flag to check if slider is being interacted with 
 
     def draw(self, screen):
-        # draw slider background and handle
-        pygame.draw.rect(screen, slider_color, (self.x, self.y, self.width, self.height))
+        # draw slider track and handle
+        pygame.draw.rect(screen, slider_color, (self.x - 7.5, self.y, self.track_thickness, self.height))  # Track centered on x position
         # calculate handle position 
-        handle_y = self.y + (self.height - 20) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
-        pygame.draw.rect(screen, slider_handle_color, (self.x, handle_y, self.width, 20))
+        handle_y = self.y + (self.height - self.handle_height) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
+        pygame.draw.rect(screen, slider_handle_color, (self.x - 7.5, handle_y, self.track_thickness, self.handle_height))
     
     def update(self, event):
         # update slider value based on mouse position
+        mouse_pos = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
-                self.value = self.min_value + (self.max_value - self.min_value) * (1 - (mouse_pos[1] - self.y) / self.height)
-                self.value = max(self.min_value, min(self.max_value, self.value))
-                self.callback(self.value)
+            if (self.x - 7.5 <= mouse_pos[0] <= self.x - 7.5 + self.track_thickness) and \
+               self.y <= mouse_pos[1] <= self.y + self.height:
+                self.is_being_interacted = True
+                self.set_value_from_mouse(mouse_pos)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.is_being_interacted = False
+        elif event.type == pygame.MOUSEMOTION:
+            if self.is_being_interacted:
+                self.set_value_from_mouse(mouse_pos)
+    
+    def set_value_from_mouse(self, mouse_pos):
+        # calculate value from mouse position
+        self.value = self.min_value + (self.max_value - self.min_value) * (1 - (mouse_pos[1] - self.y) / self.height)
+        self.value = max(self.min_value, min(self.max_value, self.value))
+        self.callback(self.value)
 
 # function to interpolate points between two points
 def interpolate_points(start, end, distance):
@@ -161,16 +175,26 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            drawing = True
-            last_pos = event.pos[0] * 2, event.pos[1] * 2
-            brush_size_slider.update(event)  # update brush size on mouse click
+            # Check if within slider area
+            mouse_pos = pygame.mouse.get_pos()
+            if (slider_x - 7.5 <= mouse_pos[0] <= slider_x - 7.5 + brush_size_slider.track_thickness) and \
+               slider_y <= mouse_pos[1] <= slider_y + slider_height:
+                brush_size_slider.update(event)
+                drawing = False
+            else:
+                drawing = True
+                last_pos = event.pos[0] * 2, event.pos[1] * 2
+                brush_size_slider.update(event)
         elif event.type == pygame.MOUSEBUTTONUP:
+            brush_size_slider.update(event)
             drawing = False
         elif event.type == pygame.MOUSEMOTION:
             if drawing:
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
                 draw_line(super_screen, pen_color, last_pos, current_pos, width * 2)
                 last_pos = current_pos
+            else:
+                brush_size_slider.update(event)  # update slider while moving the mouse
 
         # check if the buttons are clicked
         clear_button.is_clicked(event)
