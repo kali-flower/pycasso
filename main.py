@@ -44,7 +44,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 # button class
 class Button:
-    def __init__(self, text, x, y, width, height, callback, color=None):
+    def __init__(self, text, x, y, width, height, callback, color=None, text_color=button_text_color):
         self.text = text
         self.x = x
         self.y = y
@@ -53,6 +53,7 @@ class Button:
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
         self.color = color  # button colors
+        self.text_color = text_color  # dynamic text color
         self.hitbox_size = 10  # hitbox for better click detection 
 
     def draw(self, screen):
@@ -64,7 +65,7 @@ class Button:
             color = self.color if self.color else button_color
 
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
-        text_surface = self.font.render(self.text, True, button_text_color)
+        text_surface = self.font.render(self.text, True, self.text_color)
         screen.blit(text_surface, (self.x + (self.width - text_surface.get_width()) // 2, self.y + (self.height - text_surface.get_height()) // 2))
 
     def is_clicked(self, event):
@@ -158,10 +159,11 @@ def update_brush_size(new_size):
 def set_color(color):
     global pen_color
     pen_color = color
+    pen_button.text_color = color  # update pen button text color
 
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
-pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool)
+pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color)
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool)
 
 # create color buttons
@@ -201,7 +203,7 @@ while running:
                 brush_size_slider.update(event)
                 drawing = False
             else:
-                # Check if any color button is clicked
+                # checks if color button is clicked 
                 color_button_active = False
                 for button in color_buttons:
                     if (button.x - button.hitbox_size <= mouse_pos[0] <= button.x + button.width + button.hitbox_size and
