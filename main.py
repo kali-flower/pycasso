@@ -30,7 +30,6 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 # button class
 class Button:
     def __init__(self, text, x, y, width, height, callback):
-
         # initialize button 
         self.text = text
         self.x = x
@@ -91,12 +90,12 @@ def clear_canvas():
 # function to set pen tool
 def set_pen_tool():
     global pen_color
-    pen_color = (0, 0, 0)  # Pen color
+    pen_color = (0, 0, 0)  # pen color
 
 # function to set eraser tool
 def set_eraser_tool():
     global pen_color
-    pen_color = eraser_color  # Eraser color
+    pen_color = eraser_color  # eraser color
 
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
