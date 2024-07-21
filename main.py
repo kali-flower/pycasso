@@ -7,11 +7,14 @@ pygame.init()
 # original window size based on user screen
 info = pygame.display.Info()
 screen_width = int(info.current_w * 0.8)
-screen_height = int(info.current_h * 0.8) 
+screen_height = int(info.current_h * 0.8)
 
 # colors
 background_color = (255, 255, 255)
 pen_color = (0, 0, 0)
+button_color = (200, 200, 200)
+button_hover_color = (150, 150, 150)
+button_text_color = (0, 0, 0)
 
 # supersampled window size --> 4x original 
 SUPER_WIDTH, SUPER_HEIGHT = screen_width * 2, screen_height * 2
@@ -22,6 +25,36 @@ super_screen.fill(background_color)  # clear supersampled screen
 
 # initialize display window
 screen = pygame.display.set_mode((screen_width, screen_height))
+
+# clear button class
+class ClearButton:
+    # initialize button with properties 
+    def __init__(self, text, x, y, width, height, callback):
+        self.text = text
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.callback = callback
+        self.font = pygame.font.Font(None, 36)
+
+    # draws button on the screen 
+    def draw(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
+            color = button_hover_color
+        else:
+            color = button_color
+        pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
+        text_surface = self.font.render(self.text, True, button_text_color)
+        screen.blit(text_surface, (self.x + (self.width - text_surface.get_width()) // 2, self.y + (self.height - text_surface.get_height()) // 2))
+
+    # checks if button is clicked 
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
+                self.callback()
 
 # function to interpolate points between two points
 def interpolate_points(start, end, distance):
@@ -46,6 +79,13 @@ def draw_line(screen, color, start, end, width):
     for point in points:
         pygame.draw.circle(screen, color, point, width // 2)
 
+# clear canvas function
+def clear_canvas():
+    super_screen.fill(background_color)
+
+# create button instance
+clear_button = ClearButton('Clear', 10, 10, 100, 50, clear_canvas)
+
 # main loop
 running = True
 drawing = False
@@ -66,12 +106,18 @@ while running:
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
                 draw_line(super_screen, pen_color, last_pos, current_pos, width * 2)
                 last_pos = current_pos
+        
+        # check if the button is clicked
+        clear_button.is_clicked(event)
 
     # clear screen before drawing
     screen.fill(background_color)
 
     # downscale supersampled image
     pygame.transform.scale(super_screen, (screen_width, screen_height), screen)
+
+    # draw the button
+    clear_button.draw(screen)
 
     # update display
     pygame.display.flip()
