@@ -44,6 +44,7 @@ super_screen.fill(background_color)  # clear supersampled screen
 
 # initialize display window
 screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Pycasso") # title :D
 
 # Button class
 class Button:
@@ -95,12 +96,16 @@ class Slider:
         self.handle_height = 20
         self.track_thickness = self.width
         self.is_being_interacted = False
+        self.handle_interact_color = (60, 60, 60)  # darker handle color when user is interacting with it 
 
     def draw(self, screen):
-        pygame.draw.rect(screen, slider_color, (self.x, self.y, self.track_thickness, self.height))
+        track_color = slider_color
+        handle_color = self.handle_interact_color if self.is_being_interacted else slider_handle_color
+
+        pygame.draw.rect(screen, track_color, (self.x, self.y, self.track_thickness, self.height))
         handle_y = self.y + (self.height - self.handle_height) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
-        pygame.draw.rect(screen, slider_handle_color, (self.x, handle_y, self.track_thickness, self.handle_height))
-    
+        pygame.draw.rect(screen, handle_color, (self.x, handle_y, self.track_thickness, self.handle_height))
+
     def update(self, event):
         mouse_pos = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -112,6 +117,7 @@ class Slider:
         elif event.type == pygame.MOUSEMOTION:
             if self.is_being_interacted:
                 self.set_value_from_mouse(mouse_pos)
+
     
     def set_value_from_mouse(self, mouse_pos):
         relative_pos = (mouse_pos[1] - self.y) / self.height
