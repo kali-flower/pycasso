@@ -22,7 +22,7 @@ slider_handle_color = (100, 100, 100)
 # variables
 current_tool = 'pen'
 
-# define new colors
+# more colors! :D
 colors = [
     (0, 0, 0),        # black
     (255, 142, 156),  # red
@@ -45,7 +45,7 @@ super_screen.fill(background_color)  # clear supersampled screen
 # initialize display window
 screen = pygame.display.set_mode((screen_width, screen_height))
 
-# button class
+# Button class
 class Button:
     def __init__(self, text, x, y, width, height, callback, color=None, text_color=button_text_color, selected_color=None):
         self.text = text
@@ -81,7 +81,7 @@ class Button:
                self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
                 self.callback()
 
-# slider class
+# Slider class
 class Slider:
     def __init__(self, x, y, width, height, min_value, max_value, initial_value, callback):
         self.x = x
@@ -115,9 +115,14 @@ class Slider:
     
     def set_value_from_mouse(self, mouse_pos):
         relative_pos = (mouse_pos[1] - self.y) / self.height
-        brush_size = 5 + (100 - 5) * (1 - relative_pos)  # use interpolation to calculate brush sizes along slider 
-        self.value = max(5, min(100, brush_size))  # make sure value is in bounds 
-        self.callback(self.value)
+        new_size = 5 + (100 - 5) * (1 - relative_pos)  # use interpolation to calculate sizes along slider 
+        new_size = max(5, min(100, new_size))  # make sure value is in bounds 
+        self.value = new_size
+        self.callback(new_size)
+        
+    def set_value(self, value):
+        self.value = value
+
 
 # function to interpolate points between two points
 def interpolate_points(start, end, distance):
@@ -146,23 +151,30 @@ def draw_line(screen, color, start, end, width):
 def clear_canvas():
     super_screen.fill(background_color)
 
-# function to set pen tool
+# set pen tool function 
 def set_pen_tool():
     global pen_color, current_tool
     pen_color = (0, 0, 0)  # pen color
     current_tool = 'pen'
+    size_slider.set_value(sizes['pen'])  # slider will match with pen size --> retrieve from hashmap 
 
 def set_eraser_tool():
     global pen_color, current_tool
     pen_color = eraser_color  # eraser color
     current_tool = 'eraser'
+    size_slider.set_value(sizes['eraser'])  # slider will match with eraser size -- retrieve from hashmap 
 
-# function to update brush size
+
+# Function to update brush size
 def update_brush_size(new_size):
-    global width
-    width = int(new_size)
+    sizes[current_tool] = new_size  # save current tool's size 
+    if current_tool == 'pen':
+        pen_width = new_size
+    else:
+        eraser_width = new_size
+    size_slider.set_value(new_size)  # update slider's value to reflect new size
 
-# function to set pen color
+# set pen color function 
 def set_color(color):
     global pen_color
     pen_color = color
@@ -187,11 +199,12 @@ slider_x = 10
 slider_y = (screen_height - slider_height) // 2
 
 # create slider instance 
-brush_size_slider = Slider(slider_x, slider_y, slider_width, slider_height, 5, 100, 10, update_brush_size)
+size_slider = Slider(slider_x, slider_y, slider_width, slider_height, 5, 100, 10, update_brush_size)
 
-# set initial tool mode
-pen_color = (0, 0, 0)
-width = 10
+# set initial tool mode and sizes
+sizes = {'pen': 10, 'eraser': 10} 
+pen_width = sizes['pen']
+eraser_width = sizes['eraser']
 
 # main loop
 running = True
@@ -205,12 +218,11 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            if (slider_x <= mouse_pos[0] <= slider_x + brush_size_slider.track_thickness and
+            if (slider_x <= mouse_pos[0] <= slider_x + size_slider.track_thickness and
                 slider_y <= mouse_pos[1] <= slider_y + slider_height):
-                brush_size_slider.update(event)
+                size_slider.update(event)
                 drawing = False
             else:
-                # Check if any color button is clicked
                 color_button_active = False
                 for button in color_buttons:
                     if (button.x - button.hitbox_size <= mouse_pos[0] <= button.x + button.width + button.hitbox_size and
@@ -224,17 +236,17 @@ while running:
                     drawing = True
                     last_pos = event.pos[0] * 2, event.pos[1] * 2
         elif event.type == pygame.MOUSEBUTTONUP:
-            brush_size_slider.update(event)
+            size_slider.update(event)
             drawing = False
             color_button_active = False
         elif event.type == pygame.MOUSEMOTION:
             if drawing:
-                current_pos = event.pos[0]
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
-                draw_line(super_screen, pen_color, last_pos, current_pos, width * 2)
+                current_width = sizes[current_tool] * 2
+                draw_line(super_screen, pen_color, last_pos, current_pos, current_width)
                 last_pos = current_pos
             else:
-                brush_size_slider.update(event)  # update slider while moving the mouse
+                size_slider.update(event)  # update slider while moving the mouse
 
         # check if the buttons are clicked
         clear_button.is_clicked(event)
@@ -257,7 +269,7 @@ while running:
         button.draw(screen)
 
     # draw the slider
-    brush_size_slider.draw(screen)
+    size_slider.draw(screen)
 
     # update display
     pygame.display.flip()
