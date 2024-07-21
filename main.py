@@ -20,8 +20,17 @@ slider_color = (180, 180, 180)
 slider_handle_color = (100, 100, 100)
 
 # define new colors
-black_color = (0, 0, 0)
-blue_color = (0, 0, 255)
+colors = [
+    (0, 0, 0),        # black
+    (255, 142, 156),  # red
+    (255, 185, 147),  # orange
+    (243, 238, 155),  # yellow
+    (171, 232, 162),  # green
+    (153, 214, 234),  # cyan
+    (138, 171, 239),  # blue
+    (178, 160, 255),  # violet
+    (255, 169, 216)   # pink
+]
 
 # supersampled window size --> 2x original
 SUPER_WIDTH, SUPER_HEIGHT = screen_width * 2, screen_height * 2
@@ -43,11 +52,13 @@ class Button:
         self.height = height
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
-        self.color = color  # optional color for the button
+        self.color = color  # button colors
+        self.hitbox_size = 10  # hitbox for better click detection 
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
-        if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
+        if self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
+           self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
             color = button_hover_color
         else:
             color = self.color if self.color else button_color
@@ -59,7 +70,8 @@ class Button:
     def is_clicked(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
+            if self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
+               self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
                 self.callback()
 
 # slider class
@@ -153,8 +165,11 @@ pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool)
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool)
 
 # create color buttons
-black_button = Button('', 10, screen_height - 60, 50, 50, lambda: set_color(black_color), black_color)
-blue_button = Button('', 70, screen_height - 60, 50, 50, lambda: set_color(blue_color), blue_color)
+color_buttons = []
+color_x = 10
+for color in colors:
+    color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, lambda c=color: set_color(c), color))
+    color_x += 60
 
 # slider height and positioning
 slider_width = 20
@@ -173,6 +188,7 @@ width = 10
 running = True
 drawing = False
 last_pos = None
+color_button_active = False
 
 while running:
     for event in pygame.event.get():
@@ -180,18 +196,31 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            if (slider_x <= mouse_pos[0] <= slider_x + brush_size_slider.track_thickness) and \
-               slider_y <= mouse_pos[1] <= slider_y + slider_height:
+            if (slider_x <= mouse_pos[0] <= slider_x + brush_size_slider.track_thickness and
+                slider_y <= mouse_pos[1] <= slider_y + slider_height):
                 brush_size_slider.update(event)
                 drawing = False
             else:
-                drawing = True
-                last_pos = event.pos[0] * 2, event.pos[1] * 2
+                # Check if any color button is clicked
+                color_button_active = False
+                for button in color_buttons:
+                    if (button.x - button.hitbox_size <= mouse_pos[0] <= button.x + button.width + button.hitbox_size and
+                        button.y - button.hitbox_size <= mouse_pos[1] <= button.y + button.height + button.hitbox_size):
+                        color_button_active = True
+                        button.is_clicked(event)
+                        drawing = False
+                        break
+
+                if not color_button_active:
+                    drawing = True
+                    last_pos = event.pos[0] * 2, event.pos[1] * 2
         elif event.type == pygame.MOUSEBUTTONUP:
             brush_size_slider.update(event)
             drawing = False
+            color_button_active = False
         elif event.type == pygame.MOUSEMOTION:
             if drawing:
+                current_pos = event.pos[0]
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
                 draw_line(super_screen, pen_color, last_pos, current_pos, width * 2)
                 last_pos = current_pos
@@ -202,8 +231,8 @@ while running:
         clear_button.is_clicked(event)
         pen_button.is_clicked(event)
         eraser_button.is_clicked(event)
-        black_button.is_clicked(event)
-        blue_button.is_clicked(event)
+        for button in color_buttons:
+            button.is_clicked(event)
 
     # clear screen before drawing
     screen.fill(background_color)
@@ -215,9 +244,9 @@ while running:
     clear_button.draw(screen)
     pen_button.draw(screen)
     eraser_button.draw(screen)
-    black_button.draw(screen)
-    blue_button.draw(screen)
-    
+    for button in color_buttons:
+        button.draw(screen)
+
     # draw the slider
     brush_size_slider.draw(screen)
 
