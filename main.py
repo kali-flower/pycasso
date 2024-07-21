@@ -19,6 +19,10 @@ button_text_color = (0, 0, 0)
 slider_color = (180, 180, 180)
 slider_handle_color = (100, 100, 100)
 
+# define new colors
+black_color = (0, 0, 0)
+blue_color = (0, 0, 255)
+
 # supersampled window size --> 2x original
 SUPER_WIDTH, SUPER_HEIGHT = screen_width * 2, screen_height * 2
 
@@ -31,7 +35,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 # button class
 class Button:
-    def __init__(self, text, x, y, width, height, callback):
+    def __init__(self, text, x, y, width, height, callback, color=None):
         self.text = text
         self.x = x
         self.y = y
@@ -39,13 +43,14 @@ class Button:
         self.height = height
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
+        self.color = color  # optional color for the button
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
         if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
             color = button_hover_color
         else:
-            color = button_color
+            color = self.color if self.color else button_color
 
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
         text_surface = self.font.render(self.text, True, button_text_color)
@@ -137,10 +142,19 @@ def update_brush_size(new_size):
     global width
     width = int(new_size)
 
+# function to set pen color
+def set_color(color):
+    global pen_color
+    pen_color = color
+
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
 pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool)
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool)
+
+# create color buttons
+black_button = Button('', 10, screen_height - 60, 50, 50, lambda: set_color(black_color), black_color)
+blue_button = Button('', 70, screen_height - 60, 50, 50, lambda: set_color(blue_color), blue_color)
 
 # slider height and positioning
 slider_width = 20
@@ -188,6 +202,8 @@ while running:
         clear_button.is_clicked(event)
         pen_button.is_clicked(event)
         eraser_button.is_clicked(event)
+        black_button.is_clicked(event)
+        blue_button.is_clicked(event)
 
     # clear screen before drawing
     screen.fill(background_color)
@@ -199,6 +215,8 @@ while running:
     clear_button.draw(screen)
     pen_button.draw(screen)
     eraser_button.draw(screen)
+    black_button.draw(screen)
+    blue_button.draw(screen)
     
     # draw the slider
     brush_size_slider.draw(screen)
