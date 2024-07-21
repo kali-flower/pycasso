@@ -19,6 +19,9 @@ button_text_color = (0, 0, 0)
 slider_color = (180, 180, 180)
 slider_handle_color = (100, 100, 100)
 
+# variables
+current_tool = 'pen'
+
 # define new colors
 colors = [
     (0, 0, 0),        # black
@@ -44,7 +47,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 # button class
 class Button:
-    def __init__(self, text, x, y, width, height, callback, color=None, text_color=button_text_color):
+    def __init__(self, text, x, y, width, height, callback, color=None, text_color=button_text_color, selected_color=None):
         self.text = text
         self.x = x
         self.y = y
@@ -54,11 +57,14 @@ class Button:
         self.font = pygame.font.Font(None, 36)
         self.color = color  # button colors
         self.text_color = text_color  # dynamic text color
+        self.selected_color = selected_color
         self.hitbox_size = 10  # hitbox for better click detection 
 
-    def draw(self, screen):
+    def draw(self, screen, is_selected=False):
         mouse_pos = pygame.mouse.get_pos()
-        if self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
+        if is_selected:
+            color = self.selected_color
+        elif self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
            self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
             color = button_hover_color
         else:
@@ -142,13 +148,14 @@ def clear_canvas():
 
 # function to set pen tool
 def set_pen_tool():
-    global pen_color
+    global pen_color, current_tool
     pen_color = (0, 0, 0)  # pen color
+    current_tool = 'pen'
 
-# function to set eraser tool
 def set_eraser_tool():
-    global pen_color
+    global pen_color, current_tool
     pen_color = eraser_color  # eraser color
+    current_tool = 'eraser'
 
 # function to update brush size
 def update_brush_size(new_size):
@@ -163,8 +170,8 @@ def set_color(color):
 
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
-pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color)
-eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool)
+pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color, selected_color=(100, 100, 100))
+eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
 
 # create color buttons
 color_buttons = []
@@ -203,7 +210,7 @@ while running:
                 brush_size_slider.update(event)
                 drawing = False
             else:
-                # checks if color button is clicked 
+                # Check if any color button is clicked
                 color_button_active = False
                 for button in color_buttons:
                     if (button.x - button.hitbox_size <= mouse_pos[0] <= button.x + button.width + button.hitbox_size and
@@ -244,8 +251,8 @@ while running:
 
     # draw the buttons
     clear_button.draw(screen)
-    pen_button.draw(screen)
-    eraser_button.draw(screen)
+    pen_button.draw(screen, is_selected=(current_tool == 'pen'))
+    eraser_button.draw(screen, is_selected=(current_tool == 'eraser'))
     for button in color_buttons:
         button.draw(screen)
 
