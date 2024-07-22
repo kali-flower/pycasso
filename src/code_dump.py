@@ -1,6 +1,9 @@
 import pygame
 import math
 
+from collections import deque
+import copy
+
 # initialize pygame
 pygame.init()
 
@@ -21,6 +24,10 @@ slider_handle_color = (100, 100, 100)
 
 # variables
 current_tool = 'pen'
+
+max_undo_steps = 10
+undo_stack = deque(maxlen=max_undo_steps)
+current_state = None
 
 # more colors! :D
 colors = [
@@ -60,13 +67,14 @@ class Button:
         self.text_color = text_color  # dynamic text color
         self.selected_color = selected_color
         self.hitbox_size = 10  # hitbox for better click detection 
+        self.selected_color = selected_color if selected_color else button_hover_color
 
     def draw(self, screen, is_selected=False):
         mouse_pos = pygame.mouse.get_pos()
         if is_selected:
             color = self.selected_color
         elif self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
-           self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
+        self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
             color = button_hover_color
         else:
             color = self.color if self.color else button_color
@@ -154,22 +162,37 @@ def draw_line(screen, color, start, end, width):
     for point in points:
         pygame.draw.circle(screen, color, point, width // 2)
 
-# clear canvas function
+def save_state():
+    global current_state
+    current_state = super_screen.copy()
+    undo_stack.append(current_state)
+
+def undo():
+    global current_state
+    if len(undo_stack) > 1:
+        undo_stack.pop()  # remove the current state
+        current_state = undo_stack[-1].copy()  # get the previous state
+        super_screen.blit(current_state, (0, 0))
+
 def clear_canvas():
+    save_state()  # save the current state before clearing
     super_screen.fill(background_color)
 
-# set pen tool function 
 def set_pen_tool():
-    global pen_color, current_tool
-    pen_color = (0, 0, 0)  # pen color
+    global current_tool, pen_color
     current_tool = 'pen'
-    size_slider.set_value(sizes['pen'])  # slider will match with pen size --> retrieve from hashmap 
+    pen_color = pen_button.text_color  # restore the previous pen color
+    size_slider.set_value(sizes['pen'])
+    pen_button.color = button_hover_color
+    eraser_button.color = button_color
 
 def set_eraser_tool():
-    global pen_color, current_tool
-    pen_color = eraser_color  # eraser color
+    global current_tool, pen_color
     current_tool = 'eraser'
-    size_slider.set_value(sizes['eraser'])  # slider will match with eraser size -- retrieve from hashmap 
+    pen_color = background_color  # set pen_color to background_color for erasing
+    size_slider.set_value(sizes['eraser'])
+    eraser_button.color = button_hover_color
+    pen_button.color = button_color
 
 
 # Function to update brush size
@@ -183,22 +206,28 @@ def update_brush_size(new_size):
 
 # set pen color function 
 def set_color(color):
-    global pen_color
+    global pen_color, current_tool
     pen_color = color
-    pen_button.text_color = color  # update pen button text color
+    pen_button.text_color = color
+    current_tool = 'pen'  # switch to pen tool when color is selected
+    pen_button.color = button_color  # reset pen button color
+    eraser_button.color = button_color  # reset eraser button color
 
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
 pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color, selected_color=(100, 100, 100))
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
 
+# create undo button
+undo_button = Button('Undo', 340, 10, 100, 50, undo)
+
 # create color buttons
 color_buttons = []
 color_x = 10
 for color in colors:
-    color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, lambda c=color: set_color(c), color))
+    color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, lambda c=color: set_color(c), color, selected_color=(max(0, color[0] - 50), max(0, color[1] - 50), max(0, color[2] - 50))))
     color_x += 60
-
+    
 # slider height and positioning
 slider_width = 20
 slider_height = int(screen_height * 0.7)
@@ -213,11 +242,15 @@ sizes = {'pen': 10, 'eraser': 10}
 pen_width = sizes['pen']
 eraser_width = sizes['eraser']
 
+# save initial blank state
+save_state()
+
 # main loop
 running = True
 drawing = False
 last_pos = None
 color_button_active = False
+stroke_made = False  # new flag to track if a stroke was made
 
 while running:
     for event in pygame.event.get():
@@ -241,26 +274,37 @@ while running:
 
                 if not color_button_active:
                     drawing = True
+                    stroke_made = False  # reset stroke_made flag
                     last_pos = event.pos[0] * 2, event.pos[1] * 2
         elif event.type == pygame.MOUSEBUTTONUP:
             size_slider.update(event)
+            if drawing and stroke_made:
+                save_state()  # save state after finishing a stroke
             drawing = False
             color_button_active = False
         elif event.type == pygame.MOUSEMOTION:
             if drawing:
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
                 current_width = sizes[current_tool] * 2
-                draw_line(super_screen, pen_color, last_pos, current_pos, current_width)
+                current_color = background_color if current_tool == 'eraser' else pen_color
+                draw_line(super_screen, current_color, last_pos, current_pos, current_width)
                 last_pos = current_pos
+                stroke_made = True  # set stroke_made flag
             else:
                 size_slider.update(event)  # update slider while moving the mouse
 
         # check if the buttons are clicked
-        clear_button.is_clicked(event)
-        pen_button.is_clicked(event)
-        eraser_button.is_clicked(event)
-        for button in color_buttons:
-            button.is_clicked(event)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if clear_button.is_clicked(event):
+                save_state()  # save state before clearing
+                clear_canvas()
+            elif undo_button.is_clicked(event):
+                undo()
+            else:
+                pen_button.is_clicked(event)
+                eraser_button.is_clicked(event)
+                for button in color_buttons:
+                    button.is_clicked(event)
 
     # clear screen before drawing
     screen.fill(background_color)
@@ -272,8 +316,9 @@ while running:
     clear_button.draw(screen)
     pen_button.draw(screen, is_selected=(current_tool == 'pen'))
     eraser_button.draw(screen, is_selected=(current_tool == 'eraser'))
+    undo_button.draw(screen)
     for button in color_buttons:
-        button.draw(screen)
+        button.draw(screen, is_selected=(pen_color == button.color and current_tool == 'pen'))
 
     # draw the slider
     size_slider.draw(screen)
