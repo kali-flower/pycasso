@@ -25,9 +25,11 @@ slider_handle_color = (100, 100, 100)
 # variables
 current_tool = 'pen'
 
-max_undo_steps = 10
+max_undo_steps = 11
 undo_stack = deque(maxlen=max_undo_steps)
 current_state = None
+
+redo_stack = deque(maxlen=max_undo_steps)
 
 # more colors! :D
 colors = [
@@ -166,12 +168,20 @@ def save_state():
     global current_state
     current_state = super_screen.copy()
     undo_stack.append(current_state)
+    redo_stack.clear()  # clear redo stack when a new action is performed
 
 def undo():
     global current_state
     if len(undo_stack) > 1:
-        undo_stack.pop()  # remove the current state
-        current_state = undo_stack[-1].copy()  # get the previous state
+        redo_stack.append(undo_stack.pop())  # move current state to redo stack
+        current_state = undo_stack[-1].copy()
+        super_screen.blit(current_state, (0, 0))
+
+def redo():
+    global current_state
+    if redo_stack:
+        current_state = redo_stack.pop()
+        undo_stack.append(current_state)
         super_screen.blit(current_state, (0, 0))
 
 def clear_canvas():
@@ -218,8 +228,9 @@ clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
 pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color, selected_color=(100, 100, 100))
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
 
-# create undo button
+# create undo and redo buttons
 undo_button = Button('Undo', 340, 10, 100, 50, undo)
+redo_button = Button('Redo', 450, 10, 100, 50, redo)
 
 # create color buttons
 color_buttons = []
@@ -250,7 +261,7 @@ running = True
 drawing = False
 last_pos = None
 color_button_active = False
-stroke_made = False  # new flag to track if a stroke was made
+stroke_made = False  # flag to track if stroke was made 
 
 while running:
     for event in pygame.event.get():
@@ -300,6 +311,8 @@ while running:
                 clear_canvas()
             elif undo_button.is_clicked(event):
                 undo()
+            elif redo_button.is_clicked(event):
+                redo()
             else:
                 pen_button.is_clicked(event)
                 eraser_button.is_clicked(event)
@@ -317,6 +330,7 @@ while running:
     pen_button.draw(screen, is_selected=(current_tool == 'pen'))
     eraser_button.draw(screen, is_selected=(current_tool == 'eraser'))
     undo_button.draw(screen)
+    redo_button.draw(screen)
     for button in color_buttons:
         button.draw(screen, is_selected=(pen_color == button.color and current_tool == 'pen'))
 
