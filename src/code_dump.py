@@ -223,10 +223,18 @@ def set_color(color):
     pen_button.color = button_color  # reset pen button color
     eraser_button.color = button_color  # reset eraser button color
 
+# button to save image as a png 
+def save_image(filename):
+    pygame.image.save(super_screen, filename)
+    print(f"Image saved as {filename}")
+
+
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, clear_canvas)
 pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=pen_color, selected_color=(100, 100, 100))
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
+save_button = Button('Save', 560, 10, 100, 50, lambda: save_image('drawing.png'))
+
 
 # create undo and redo buttons
 undo_button = Button('Undo', 340, 10, 100, 50, undo)
@@ -313,6 +321,8 @@ while running:
                 undo()
             elif redo_button.is_clicked(event):
                 redo()
+            elif save_button.is_clicked(event):
+                save_image('drawing.png')  # save the current drawing
             else:
                 pen_button.is_clicked(event)
                 eraser_button.is_clicked(event)
@@ -331,6 +341,7 @@ while running:
     eraser_button.draw(screen, is_selected=(current_tool == 'eraser'))
     undo_button.draw(screen)
     redo_button.draw(screen)
+    save_button.draw(screen)  # draw save button
     for button in color_buttons:
         button.draw(screen, is_selected=(pen_color == button.color and current_tool == 'pen'))
 
