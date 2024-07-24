@@ -223,6 +223,14 @@ def set_color(color):
     pen_button.color = button_color  # reset pen button color
     eraser_button.color = button_color  # reset eraser button color
 
+def set_shape_tool(shape):
+    global current_tool
+    current_tool = shape
+    pen_button.color = button_color
+    eraser_button.color = button_color
+    rectangle_button.color = button_hover_color if shape == 'rectangle' else button_color
+    circle_button.color = button_hover_color if shape == 'circle' else button_color
+
 # button to save image as a png 
 def save_image(filename):
     pygame.image.save(super_screen, filename)
@@ -239,6 +247,11 @@ save_button = Button('Save', 560, 10, 100, 50, lambda: save_image('drawing.png')
 # create undo and redo buttons
 undo_button = Button('Undo', 340, 10, 100, 50, undo)
 redo_button = Button('Redo', 450, 10, 100, 50, redo)
+
+# create shape buttons 
+rectangle_button = Button('Rect', 670, 10, 100, 50, lambda: set_shape_tool('rectangle'))
+circle_button = Button('Circle', 780, 10, 100, 50, lambda: set_shape_tool('circle'))
+
 
 # create color buttons
 color_buttons = []
@@ -257,7 +270,7 @@ slider_y = (screen_height - slider_height) // 2
 size_slider = Slider(slider_x, slider_y, slider_width, slider_height, 5, 100, 10, update_brush_size)
 
 # set initial tool mode and sizes
-sizes = {'pen': 10, 'eraser': 10} 
+sizes = {'pen': 5, 'eraser': 20, 'rectangle': 5, 'circle': 5}
 pen_width = sizes['pen']
 eraser_width = sizes['eraser']
 
@@ -270,6 +283,8 @@ drawing = False
 last_pos = None
 color_button_active = False
 stroke_made = False  # flag to track if stroke was made 
+
+start_pos = None
 
 while running:
     for event in pygame.event.get():
@@ -294,19 +309,29 @@ while running:
                 if not color_button_active:
                     drawing = True
                     stroke_made = False  # reset stroke_made flag
-                    last_pos = event.pos[0] * 2, event.pos[1] * 2
+                    start_pos = event.pos[0] * 2, event.pos[1] * 2
+                    last_pos = start_pos
         elif event.type == pygame.MOUSEBUTTONUP:
             size_slider.update(event)
             if drawing and stroke_made:
-                save_state()  # save state after finishing a stroke
+                save_state()  # save state after finishing a stroke or shape
             drawing = False
             color_button_active = False
+            start_pos = None
         elif event.type == pygame.MOUSEMOTION:
             if drawing:
                 current_pos = event.pos[0] * 2, event.pos[1] * 2
                 current_width = sizes[current_tool] * 2
                 current_color = background_color if current_tool == 'eraser' else pen_color
-                draw_line(super_screen, current_color, last_pos, current_pos, current_width)
+                if current_tool == 'pen' or current_tool == 'eraser':
+                    draw_line(super_screen, current_color, last_pos, current_pos, current_width)
+                elif current_tool == 'rectangle' and start_pos:
+                    super_screen.blit(current_state, (0, 0))  # restore the screen to the state before drawing the shape
+                    pygame.draw.rect(super_screen, current_color, (start_pos[0], start_pos[1], current_pos[0] - start_pos[0], current_pos[1] - start_pos[1]), current_width // 2)
+                elif current_tool == 'circle' and start_pos:
+                    super_screen.blit(current_state, (0, 0))  # restore the screen to the state before drawing the shape
+                    radius = int(math.sqrt((current_pos[0] - start_pos[0]) ** 2 + (current_pos[1] - start_pos[1]) ** 2))
+                    pygame.draw.circle(super_screen, current_color, start_pos, radius, current_width // 2)
                 last_pos = current_pos
                 stroke_made = True  # set stroke_made flag
             else:
@@ -326,6 +351,8 @@ while running:
             else:
                 pen_button.is_clicked(event)
                 eraser_button.is_clicked(event)
+                rectangle_button.is_clicked(event)
+                circle_button.is_clicked(event)
                 for button in color_buttons:
                     button.is_clicked(event)
 
@@ -342,6 +369,8 @@ while running:
     undo_button.draw(screen)
     redo_button.draw(screen)
     save_button.draw(screen)  # draw save button
+    rectangle_button.draw(screen, is_selected=(current_tool == 'rectangle'))
+    circle_button.draw(screen, is_selected=(current_tool == 'circle'))
     for button in color_buttons:
         button.draw(screen, is_selected=(pen_color == button.color and current_tool == 'pen'))
 
