@@ -228,6 +228,7 @@ def set_shape_tool(shape):
     current_tool = shape
     pen_button.color = button_color
     eraser_button.color = button_color
+    # set behavior when shapes are selected 
     rectangle_button.color = button_hover_color if shape == 'rectangle' else button_color
     circle_button.color = button_hover_color if shape == 'circle' else button_color
 
