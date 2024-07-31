@@ -163,9 +163,9 @@ class Canvas(Widget):
 
             start_pos = self.start_pos
             sx, sy = start_pos
-            curr_pos  = event.pos[0] * 2, event.pos[1] * 2
+            curr_pos = event.pos[0] * 2, event.pos[1] * 2
             cx, cy = curr_pos
-            last_pos  = self.last_pos
+            last_pos = self.last_pos
             curr_width = self.tool_sizes[curr_tool]
             curr_color = background_color if curr_tool == 'eraser' else self.pen_color
 
@@ -173,15 +173,21 @@ class Canvas(Widget):
                 draw_line(self.screen, curr_color, last_pos, curr_pos, curr_width)
             elif curr_tool == 'rectangle' and start_pos:
                 screen.blit(curr_state, (0, 0))  # restore the screen to the state before drawing the shape
-                pygame.draw.rect(screen, curr_color, (sx, sy, cx - sx, cy - sy), curr_width // 2)
+                rect_x = min(sx, cx)  # calculate the top-left x coordinate
+                rect_y = min(sy, cy)  # calculate the top-left y coordinate
+                rect_width = abs(cx - sx)  # calculate the width
+                rect_height = abs(cy - sy)  # calculate the height
+                pygame.draw.rect(screen, curr_color, (rect_x, rect_y, rect_width, rect_height), curr_width // 2)
             elif curr_tool == 'circle' and start_pos:
                 screen.blit(curr_state, (0, 0))  # restore the screen to the state before drawing the shape
-                radius = int(math.hypot(cx-sx,cy-sy))
+                radius = int(math.hypot(cx - sx, cy - sy))
                 pygame.draw.circle(screen, curr_color, start_pos, radius, curr_width // 2)
+            
             self.last_pos = curr_pos
             self.stroke_made = True
 
         return True
+
     
     def set_curr_tool_size(self, size):
         self.tool_sizes[self.curr_tool] = round(size)
