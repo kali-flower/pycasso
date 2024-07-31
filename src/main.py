@@ -46,7 +46,7 @@ def set_eraser_tool():
 # Function to update brush size
 def update_brush_size(new_size):
     global canvas
-    canvas.set_curr_tool_size(new_size)
+    canvas.set_curr_tool_size(round(new_size))
     size_slider.set_value(new_size)  # update slider's value to reflect new size
     # canvas.is_being_interacted = False    # probably not needed
 

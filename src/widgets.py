@@ -183,8 +183,8 @@ class Canvas(Widget):
 
         return True
     
-    def set_curr_tool_size(self, new_size):
-        self.tool_sizes[self.curr_tool] = new_size
+    def set_curr_tool_size(self, size):
+        self.tool_sizes[self.curr_tool] = round(size)
     
     def clear(self):
         self.save_state()
