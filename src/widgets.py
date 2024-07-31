@@ -187,8 +187,12 @@ class Canvas(Widget):
         self.tool_sizes[self.curr_tool] = round(size)
     
     def clear(self):
-        self.save_state()
+        # save current state
+        self.save_state()  
+        # fill screen with background color
         self.screen.fill(background_color)
+        # clear current state to avoid drawing over it later
+        self.curr_state = self.screen.copy()  
 
     def save_state(self):
         self.curr_state = self.screen.copy()
