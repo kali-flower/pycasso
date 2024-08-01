@@ -34,6 +34,8 @@ def set_pen_tool():
     size_slider.set_value(canvas.tool_sizes['pen'])
     pen_button.color = button_hover_color
     eraser_button.color = button_color
+    rectangle_button.color = button_color
+    circle_button.color = button_color
 
 def set_eraser_tool():
     global canvas
@@ -41,7 +43,8 @@ def set_eraser_tool():
     size_slider.set_value(canvas.tool_sizes['eraser'])
     eraser_button.color = button_hover_color
     pen_button.color = button_color
-
+    rectangle_button.color = button_color
+    circle_button.color = button_color
 
 # Function to update brush size
 def update_brush_size(new_size):
