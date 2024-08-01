@@ -1,4 +1,7 @@
 import pygame
+import tkinter as tk
+from tkinter import simpledialog
+
 import math
 
 from collections import deque
@@ -32,7 +35,7 @@ def set_pen_tool():
     global canvas
     canvas.curr_tool = 'pen'
     size_slider.set_value(canvas.tool_sizes['pen'])
-    pen_button.color = button_hover_color
+    pen_button.color = button_selected_color
     eraser_button.color = button_color
     rectangle_button.color = button_color
     circle_button.color = button_color
@@ -41,10 +44,11 @@ def set_eraser_tool():
     global canvas
     canvas.curr_tool = 'eraser'
     size_slider.set_value(canvas.tool_sizes['eraser'])
-    eraser_button.color = button_hover_color
+    eraser_button.color = button_selected_color
     pen_button.color = button_color
     rectangle_button.color = button_color
     circle_button.color = button_color
+
 
 # Function to update brush size
 def update_brush_size(new_size):
@@ -66,14 +70,14 @@ def set_color(color):
     rectangle_button.color = button_color
     circle_button.color = button_color
 
-
+# function to set shape tool
 def set_shape_tool(shape):
     global canvas
     canvas.curr_tool = shape
     pen_button.color = button_color
     eraser_button.color = button_color
-    rectangle_button.color = button_hover_color if shape == 'rectangle' else button_color
-    circle_button.color = button_hover_color if shape == 'circle' else button_color
+    rectangle_button.color = button_selected_color if shape == 'rectangle' else button_color
+    circle_button.color = button_selected_color if shape == 'circle' else button_color
 
 # button to save image as a png 
 def save_image(filename):
@@ -148,7 +152,7 @@ while running:
     circle_button.is_selected    = (canvas.curr_tool == 'circle')
     for button in color_buttons:
         button.is_selected = (canvas.pen_color == button.color and canvas.curr_tool == 'pen')
-        
+
     for widget in active_widgets:
         widget.draw(screen)
 

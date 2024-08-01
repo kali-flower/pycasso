@@ -4,6 +4,7 @@ initial_pen_color = (0, 0, 0)
 eraser_color = background_color
 button_color = (200, 200, 200)
 button_hover_color = (150, 150, 150)
+button_selected_color = (100, 100, 100)  # new selected color
 button_text_color = (0, 0, 0)
 slider_color = (180, 180, 180)
 slider_handle_color = (100, 100, 100)
