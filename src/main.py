@@ -54,10 +54,15 @@ def update_brush_size(new_size):
 def set_color(color):
     global canvas
     canvas.pen_color = color
-    canvas.curr_tool = 'pen'
-    pen_button.text_color = color
-    pen_button.color = button_color  # reset pen button color
-    eraser_button.color = button_color  # reset eraser button color
+    # only set pen tool if it is already the current tool
+    if canvas.curr_tool == 'pen':
+        pen_button.text_color = color
+    # reset button colors
+    pen_button.color = button_color  
+    eraser_button.color = button_color
+    rectangle_button.color = button_color
+    circle_button.color = button_color
+
 
 def set_shape_tool(shape):
     global canvas
@@ -100,7 +105,7 @@ color_x = 10
 for color in colors:
     color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, lambda c=color: set_color(c), color, selected_color=(max(0, color[0] - 50), max(0, color[1] - 50), max(0, color[2] - 50))))
     color_x += 60
-    
+  
 # slider height and positioning
 slider_width = 20
 slider_height = int(screen_height * 0.7)
