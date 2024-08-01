@@ -80,9 +80,11 @@ def set_shape_tool(shape):
     circle_button.color = button_selected_color if shape == 'circle' else button_color
 
 # button to save image as a png 
-def save_image(filename):
+def save_image():
+    filename = input("Enter filename (without extension): ") + ".png"
     pygame.image.save(super_screen, filename)
     print(f"Image saved as {filename}")
+
 
 # create the canvas
 canvas = Canvas(super_screen)
@@ -94,7 +96,7 @@ canvas.save_state() # Save initial blank state
 clear_button = Button('Clear', 10, 10, 100, 50, canvas.clear)
 pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=initial_pen_color, selected_color=(100, 100, 100))
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
-save_button = Button('Save', 560, 10, 100, 50, lambda: save_image('drawing.png'))
+save_button = Button('Save', 560, 10, 100, 50, save_image)
 
 
 # create undo and redo buttons
