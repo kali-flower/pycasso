@@ -110,6 +110,7 @@ class Slider(Widget):
     def set_value(self, value):
         self.value = value
 
+
 # We'll just assume it takes up the whole screen for now
 # But it would be nice to not have to assume this (maybe you
 # want to leave room for a chat window later for example).
@@ -206,16 +207,21 @@ class Canvas(Widget):
         self.redo_stack.clear()
     
     def undo(self):
-        if self.undo_stack:
+        if len(self.undo_stack) > 1:  # check if there are more than one states in the undo stack
             self.redo_stack.append(self.undo_stack.pop())
             self.curr_state = self.undo_stack[-1].copy()
             self.screen.blit(self.curr_state, (0, 0))
-    
+        elif len(self.undo_stack) == 1:  # clear screen if it's the last state
+            self.redo_stack.append(self.undo_stack.pop())
+            self.screen.fill(background_color)
+            self.curr_state = self.screen.copy()
+
     def redo(self):
         if self.redo_stack:
             self.curr_state = self.redo_stack.pop()
             self.undo_stack.append(self.curr_state)
             self.screen.blit(self.curr_state, (0, 0))
+
 
 
 
