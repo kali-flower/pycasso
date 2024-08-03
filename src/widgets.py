@@ -53,9 +53,11 @@ class Button(Widget):
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
-            if point_in_box(mouse_pos, (self.x, self.y, self.width, self.width), mode='size'):
+            if self.x <= mouse_pos[0] <= self.x + self.width and self.y <= mouse_pos[1] <= self.y + self.height:
                 self.callback()
                 return True
+        return False
+
 
 
 # Slider class
@@ -87,18 +89,19 @@ class Slider(Widget):
     def handle_event(self, event):
         mouse_pos = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if point_in_box(mouse_pos, (self.x, self.y, self.track_thickness, self.height), mode='size'):
+            if self.x <= mouse_pos[0] <= self.x + self.track_thickness and self.y <= mouse_pos[1] <= self.y + self.height:
                 self.is_being_interacted = True
                 self.set_value_from_mouse(mouse_pos)
                 return True
         elif event.type == pygame.MOUSEBUTTONUP:
             self.is_being_interacted = False
-            if self.is_being_interacted:
-                return True
+            return True if self.is_being_interacted else False
         elif event.type == pygame.MOUSEMOTION:
             if self.is_being_interacted:
                 self.set_value_from_mouse(mouse_pos)
                 return True
+        return False
+
     
     def set_value_from_mouse(self, mouse_pos):
         self.value = (mouse_pos[1] - self.y) / self.height
