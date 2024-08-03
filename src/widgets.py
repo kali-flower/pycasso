@@ -167,7 +167,7 @@ class Canvas(Widget):
             curr_pos = event.pos[0] * 2, event.pos[1] * 2
             cx, cy = curr_pos
             last_pos = self.last_pos
-            curr_width = self.tool_sizes[curr_tool]
+            curr_width = self.tool_sizes[curr_tool] * 2  # scale width for supersampling
             curr_color = background_color if curr_tool == 'eraser' else self.pen_color
 
             if curr_tool == 'pen' or curr_tool == 'eraser':
