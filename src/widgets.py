@@ -225,6 +225,27 @@ class Canvas(Widget):
             self.undo_stack.append(self.curr_state)
             self.screen.blit(self.curr_state, (0, 0))
 
+    def draw_preview_outline(self, screen):
+        curr_tool = self.curr_tool
+        curr_width = self.tool_sizes[curr_tool] 
+        curr_color = (0, 0, 0)  # color for outline 
+
+        # get mouse position without scaling
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        if curr_tool in ['pen', 'eraser']:
+            pygame.draw.circle(screen, curr_color, (mouse_x, mouse_y), curr_width // 2, 1)
+        elif curr_tool == 'rectangle':
+            rect_x = mouse_x - curr_width // 2
+            rect_y = mouse_y - curr_width // 2
+            rect_width = curr_width
+            rect_height = curr_width
+            pygame.draw.rect(screen, curr_color, (rect_x, rect_y, rect_width, rect_height), 1)
+        elif curr_tool == 'circle':
+            radius = curr_width // 2
+            pygame.draw.circle(screen, curr_color, (mouse_x, mouse_y), radius, 1)
+
+
 class ColorIndicator(Widget):
     def __init__(self, x, y, radius):
         super().__init__()

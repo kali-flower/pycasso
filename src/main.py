@@ -167,6 +167,9 @@ while running:
     for widget in active_widgets:
         widget.draw(screen)
 
+    # Draw the preview outline
+    canvas.draw_preview_outline(screen)
+
     color_indicator.draw(screen)
 
     # update display
