@@ -222,6 +222,20 @@ class Canvas(Widget):
             self.undo_stack.append(self.curr_state)
             self.screen.blit(self.curr_state, (0, 0))
 
+class ColorIndicator(Widget):
+    def __init__(self, x, y, radius):
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.radius = radius
+        self.color = initial_pen_color  # default to initial pen color
 
+    def draw(self, screen):
+        pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
 
+    def update_color(self, new_color):
+        self.color = new_color
+
+    def handle_event(self, event):
+        return False
 

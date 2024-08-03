@@ -10,7 +10,7 @@ import copy
 # self imports
 from config import *
 from graphics_utils import *
-from widgets import Button, Slider, Canvas, active_widgets
+from widgets import Button, Slider, Canvas, active_widgets, ColorIndicator
 
 # initialize pygame
 pygame.init()
@@ -61,9 +61,7 @@ def update_brush_size(new_size):
 def set_color(color):
     global canvas
     canvas.pen_color = color
-    # only set pen tool if it is already the current tool
-    if canvas.curr_tool == 'pen':
-        pen_button.text_color = color
+    color_indicator.update_color(color)  # updates the color indicator
     # reset button colors
     pen_button.color = button_color  
     eraser_button.color = button_color
@@ -115,6 +113,9 @@ redo_button = Button('Redo', 450, 10, 100, 50, canvas.redo)
 rectangle_button = Button('Rect', 670, 10, 100, 50, lambda: set_shape_tool('rectangle'))
 circle_button = Button('Circle', 780, 10, 100, 50, lambda: set_shape_tool('circle'))
 
+# create color indicator instance
+color_indicator = ColorIndicator(900, 35, 15) 
+
 
 # create color buttons
 color_buttons = []
@@ -165,6 +166,8 @@ while running:
 
     for widget in active_widgets:
         widget.draw(screen)
+
+    color_indicator.draw(screen)
 
     # update display
     pygame.display.flip()
