@@ -81,9 +81,17 @@ def set_shape_tool(shape):
 
 # button to save image as a png 
 def save_image():
-    filename = input("Enter filename (without extension): ") + ".png"
-    pygame.image.save(super_screen, filename)
-    print(f"Image saved as {filename}")
+    root = tk.Tk()
+    root.withdraw()  # hide the root window
+    filename = simpledialog.askstring("Save Image", "Enter filename (without extension):")
+    
+    if filename:  # only save if a filename was provided
+        filename = filename + ".png"
+        pygame.image.save(super_screen, filename)
+        print(f"Image saved as {filename}")
+    else:
+        print("Save cancelled.")
+
 
 
 # create the canvas

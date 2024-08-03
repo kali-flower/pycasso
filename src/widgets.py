@@ -34,7 +34,7 @@ class Button(Widget):
         self.selected_color = selected_color if selected_color else button_hover_color
 
         self.is_selected = False
-        active_widgets.add(self)
+        # active_widgets.add(self) # -> not needed, already in Widget superclass
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
@@ -211,10 +211,10 @@ class Canvas(Widget):
             self.redo_stack.append(self.undo_stack.pop())
             self.curr_state = self.undo_stack[-1].copy()
             self.screen.blit(self.curr_state, (0, 0))
-        elif len(self.undo_stack) == 1:  # clear screen if it's the last state
-            self.redo_stack.append(self.undo_stack.pop())
-            self.screen.fill(background_color)
-            self.curr_state = self.screen.copy()
+        elif len(self.undo_stack) == 1:  # if it's the last state, keep it and do nothing
+            self.curr_state = self.undo_stack[-1].copy()
+            self.screen.blit(self.curr_state, (0, 0))
+
 
     def redo(self):
         if self.redo_stack:
