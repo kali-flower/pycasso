@@ -110,8 +110,8 @@ undo_button = Button('Undo', 340, 10, 100, 50, canvas.undo)
 redo_button = Button('Redo', 450, 10, 100, 50, canvas.redo)
 
 # create shape buttons 
-rectangle_button = Button('Rect', 670, 10, 100, 50, lambda: set_shape_tool('rectangle'))
-circle_button = Button('Circle', 780, 10, 100, 50, lambda: set_shape_tool('circle'))
+rectangle_button = Button('Rect', 670, 10, 100, 50, lambda: set_shape_tool('rectangle'), selected_color=button_selected_color)
+circle_button = Button('Circle', 780, 10, 100, 50, lambda: set_shape_tool('circle'), selected_color=button_selected_color)
 
 # create color indicator instance
 color_indicator = ColorIndicator(900, 35, 15) 
@@ -156,14 +156,16 @@ while running:
     # downscale supersampled image
     pygame.transform.scale(super_screen, (screen_width, screen_height), screen)
 
-    # draw widgets
-    pen_button.is_selected       = (canvas.curr_tool == 'pen')
-    eraser_button.is_selected    = (canvas.curr_tool == 'eraser')
+    # Update button states
+    pen_button.is_selected = (canvas.curr_tool == 'pen')
+    eraser_button.is_selected = (canvas.curr_tool == 'eraser')
     rectangle_button.is_selected = (canvas.curr_tool == 'rectangle')
-    circle_button.is_selected    = (canvas.curr_tool == 'circle')
+    circle_button.is_selected = (canvas.curr_tool == 'circle')
+    
     for button in color_buttons:
         button.is_selected = (canvas.pen_color == button.color and canvas.curr_tool == 'pen')
 
+    # draw widgets
     for widget in active_widgets:
         widget.draw(screen)
 

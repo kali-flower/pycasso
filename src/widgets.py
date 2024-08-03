@@ -27,14 +27,12 @@ class Button(Widget):
         self.height = height
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
-        self.color = color  # button colors
-        self.text_color = text_color  # dynamic text color
-        self.selected_color = selected_color
+        self.color = color if color else button_color
+        self.text_color = text_color
+        self.selected_color = selected_color if selected_color else button_selected_color
         self.hitbox_size = 10  # hitbox for better click detection 
-        self.selected_color = selected_color if selected_color else button_hover_color
 
         self.is_selected = False
-        # active_widgets.add(self) # -> not needed, already in Widget superclass
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
@@ -44,7 +42,7 @@ class Button(Widget):
         self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
             color = button_hover_color
         else:
-            color = self.color if self.color else button_color
+            color = self.color
 
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
         text_surface = self.font.render(self.text, True, self.text_color)
@@ -57,8 +55,6 @@ class Button(Widget):
                 self.callback()
                 return True
         return False
-
-
 
 # Slider class
 class Slider(Widget):
