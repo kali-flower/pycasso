@@ -128,16 +128,16 @@ slider_x = 10
 slider_y = (screen_height - slider_height) // 2
 
 # create slider instances
-pen_slider = Slider(10, slider_y, slider_width, slider_height, 1, 100, 5,
+pen_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 100, 5,
                     lambda value: update_brush_size('pen', value))
 
-eraser_slider = Slider(40, slider_y, slider_width, slider_height, 1, 100, 20,
+eraser_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 100, 20,
                        lambda value: update_brush_size('eraser', value))
 
-rectangle_slider = Slider(70, slider_y, slider_width, slider_height, 1, 100, 5,
+rectangle_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 100, 5,
                           lambda value: update_brush_size('rectangle', value))
 
-circle_slider = Slider(100, slider_y, slider_width, slider_height, 1, 100, 5,
+circle_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 100, 5,
                        lambda value: update_brush_size('circle', value))
 
 current_slider = pen_slider  # Start with pen tool selected
@@ -170,11 +170,8 @@ while running:
     eraser_button.is_selected = (canvas.curr_tool == 'eraser')
     rectangle_button.is_selected = (canvas.curr_tool == 'rectangle')
     circle_button.is_selected = (canvas.curr_tool == 'circle')
-    
-    for button in color_buttons:
-        button.is_selected = (canvas.pen_color == button.color and canvas.curr_tool == 'pen')
 
-    # Update the current slider position based on the current tool size
+    # Only draw the current slider
     current_slider.set_value(canvas.tool_sizes[canvas.curr_tool])
 
     # draw widgets
