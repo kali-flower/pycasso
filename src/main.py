@@ -1,9 +1,7 @@
 import pygame
 import tkinter as tk
 from tkinter import simpledialog
-
 import math
-
 from collections import deque
 import copy
 
@@ -32,30 +30,42 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Pycasso") # title :D
 
 def set_pen_tool():
-    global canvas
+    global canvas, current_slider
     canvas.curr_tool = 'pen'
-    size_slider.set_value(canvas.tool_sizes['pen'])
+    current_slider = pen_slider
+    current_slider.set_value(canvas.tool_sizes['pen'])
     pen_button.color = button_selected_color
     eraser_button.color = button_color
     rectangle_button.color = button_color
     circle_button.color = button_color
 
 def set_eraser_tool():
-    global canvas
+    global canvas, current_slider
     canvas.curr_tool = 'eraser'
-    size_slider.set_value(canvas.tool_sizes['eraser'])
+    current_slider = eraser_slider
+    current_slider.set_value(canvas.tool_sizes['eraser'])
     eraser_button.color = button_selected_color
     pen_button.color = button_color
     rectangle_button.color = button_color
     circle_button.color = button_color
 
+def set_shape_tool(shape):
+    global canvas, current_slider
+    canvas.curr_tool = shape
+    current_slider = rectangle_slider if shape == 'rectangle' else circle_slider
+    current_slider.set_value(canvas.tool_sizes[shape])
+    pen_button.color = button_color
+    eraser_button.color = button_color
+    rectangle_button.color = button_selected_color if shape == 'rectangle' else button_color
+    circle_button.color = button_selected_color if shape == 'circle' else button_color
 
 # Function to update brush size
-def update_brush_size(new_size):
-    global canvas
-    canvas.set_curr_tool_size(round(new_size))
-    size_slider.set_value(new_size)  # update slider's value to reflect new size
-    # canvas.is_being_interacted = False    # probably not needed
+def update_brush_size(tool, new_size):
+    global canvas, current_slider
+    canvas.tool_sizes[tool] = round(new_size)
+    if canvas.curr_tool == tool:
+        canvas.set_curr_tool_size(round(new_size))
+    current_slider.set_value(new_size)  # Update the slider position
 
 # set pen color function 
 def set_color(color):
@@ -67,15 +77,6 @@ def set_color(color):
     eraser_button.color = button_color
     rectangle_button.color = button_color
     circle_button.color = button_color
-
-# function to set shape tool
-def set_shape_tool(shape):
-    global canvas
-    canvas.curr_tool = shape
-    pen_button.color = button_color
-    eraser_button.color = button_color
-    rectangle_button.color = button_selected_color if shape == 'rectangle' else button_color
-    circle_button.color = button_selected_color if shape == 'circle' else button_color
 
 # button to save image as a png 
 def save_image():
@@ -90,8 +91,6 @@ def save_image():
     else:
         print("Save cancelled.")
 
-
-
 # create the canvas
 canvas = Canvas(super_screen)
 canvas.on_stroke_finish = canvas.save_state
@@ -104,7 +103,6 @@ pen_button = Button('Pen', 120, 10, 100, 50, set_pen_tool, text_color=initial_pe
 eraser_button = Button('Eraser', 230, 10, 100, 50, set_eraser_tool, selected_color=(100, 100, 100))
 save_button = Button('Save', 560, 10, 100, 50, save_image)
 
-
 # create undo and redo buttons
 undo_button = Button('Undo', 340, 10, 100, 50, canvas.undo)
 redo_button = Button('Redo', 450, 10, 100, 50, canvas.redo)
@@ -115,7 +113,6 @@ circle_button = Button('Circle', 780, 10, 100, 50, lambda: set_shape_tool('circl
 
 # create color indicator instance
 color_indicator = ColorIndicator(900, 35, 15) 
-
 
 # create color buttons
 color_buttons = []
@@ -130,9 +127,20 @@ slider_height = int(screen_height * 0.7)
 slider_x = 10
 slider_y = (screen_height - slider_height) // 2
 
-# create slider instance 
-size_slider = Slider(slider_x, slider_y, slider_width, slider_height, 5, 100, 10,
-                     lambda percentage: update_brush_size(mix(5,100,percentage)))
+# create slider instances
+pen_slider = Slider(10, slider_y, slider_width, slider_height, 1, 100, 5,
+                    lambda value: update_brush_size('pen', value))
+
+eraser_slider = Slider(40, slider_y, slider_width, slider_height, 1, 100, 20,
+                       lambda value: update_brush_size('eraser', value))
+
+rectangle_slider = Slider(70, slider_y, slider_width, slider_height, 1, 100, 5,
+                          lambda value: update_brush_size('rectangle', value))
+
+circle_slider = Slider(100, slider_y, slider_width, slider_height, 1, 100, 5,
+                       lambda value: update_brush_size('circle', value))
+
+current_slider = pen_slider  # Start with pen tool selected
 
 def sorted_widgets():
     return sorted(active_widgets, key=lambda w: w.priority)
@@ -146,9 +154,10 @@ while running:
             break
 
         for widget in sorted_widgets():
-            claimed = widget.handle_event(event)
-            if claimed:
-                break
+            if widget == current_slider or widget not in [pen_slider, eraser_slider, rectangle_slider, circle_slider]:
+                claimed = widget.handle_event(event)
+                if claimed:
+                    break
 
     # clear screen before drawing
     screen.fill(background_color)
@@ -165,9 +174,13 @@ while running:
     for button in color_buttons:
         button.is_selected = (canvas.pen_color == button.color and canvas.curr_tool == 'pen')
 
+    # Update the current slider position based on the current tool size
+    current_slider.set_value(canvas.tool_sizes[canvas.curr_tool])
+
     # draw widgets
     for widget in active_widgets:
-        widget.draw(screen)
+        if widget == current_slider or widget not in [pen_slider, eraser_slider, rectangle_slider, circle_slider]:
+            widget.draw(screen)
 
     # Draw the preview outline
     canvas.draw_preview_outline(screen)

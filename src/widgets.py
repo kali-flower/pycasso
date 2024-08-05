@@ -27,12 +27,14 @@ class Button(Widget):
         self.height = height
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
-        self.color = color if color else button_color
-        self.text_color = text_color
-        self.selected_color = selected_color if selected_color else button_selected_color
+        self.color = color  # button colors
+        self.text_color = text_color  # dynamic text color
+        self.selected_color = selected_color
         self.hitbox_size = 10  # hitbox for better click detection 
+        self.selected_color = selected_color if selected_color else button_hover_color
 
         self.is_selected = False
+        # active_widgets.add(self) # -> not needed, already in Widget superclass
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
@@ -42,7 +44,7 @@ class Button(Widget):
         self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
             color = button_hover_color
         else:
-            color = self.color
+            color = self.color if self.color else button_color
 
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
         text_surface = self.font.render(self.text, True, self.text_color)
@@ -56,9 +58,11 @@ class Button(Widget):
                 return True
         return False
 
+
+
 # Slider class
 class Slider(Widget):
-    def __init__(self, x, y, width, height, min_value, max_value, initial_value, callback, orient='down2up'):
+    def __init__(self, x, y, width, height, min_value, max_value, initial_value, callback, orient='vertical'):
         super().__init__()
         self.x = x
         self.y = y
@@ -66,48 +70,43 @@ class Slider(Widget):
         self.height = height
         self.min_value = min_value
         self.max_value = max_value
-        self.value = initial_value  
+        self.value = initial_value
         self.callback = callback
         self.handle_height = 20
-        self.track_thickness = self.width
-        self.is_being_interacted = False
-        self.handle_interact_color = (60, 60, 60)  # darker handle color when user is interacting with it
+        self.is_being_dragged = False
         self.orient = orient
 
     def draw(self, screen):
-        track_color = slider_color
-        handle_color = self.handle_interact_color if self.is_being_interacted else slider_handle_color
-
-        pygame.draw.rect(screen, track_color, (self.x, self.y, self.track_thickness, self.height))
-        handle_y = self.y + (self.height - self.handle_height) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
-        pygame.draw.rect(screen, handle_color, (self.x, handle_y, self.track_thickness, self.handle_height))
+        # Draw track
+        pygame.draw.rect(screen, slider_color, (self.x, self.y, self.width, self.height))
+        
+        # Calculate handle position
+        handle_pos = self.y + (self.height - self.handle_height) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
+        
+        # Draw handle
+        pygame.draw.rect(screen, slider_handle_color, (self.x, handle_pos, self.width, self.handle_height))
 
     def handle_event(self, event):
-        mouse_pos = pygame.mouse.get_pos()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.x <= mouse_pos[0] <= self.x + self.track_thickness and self.y <= mouse_pos[1] <= self.y + self.height:
-                self.is_being_interacted = True
-                self.set_value_from_mouse(mouse_pos)
+            if self.x <= event.pos[0] <= self.x + self.width and self.y <= event.pos[1] <= self.y + self.height:
+                self.is_being_dragged = True
+                self.update_value(event.pos[1])
                 return True
         elif event.type == pygame.MOUSEBUTTONUP:
-            self.is_being_interacted = False
-            return True if self.is_being_interacted else False
-        elif event.type == pygame.MOUSEMOTION:
-            if self.is_being_interacted:
-                self.set_value_from_mouse(mouse_pos)
-                return True
+            self.is_being_dragged = False
+        elif event.type == pygame.MOUSEMOTION and self.is_being_dragged:
+            self.update_value(event.pos[1])
+            return True
         return False
 
-    
-    def set_value_from_mouse(self, mouse_pos):
-        self.value = (mouse_pos[1] - self.y) / self.height
-        self.value = clamp(self.value, 0, 1)
-        if self.orient == 'down2up':
-            self.value = 1 - self.value
+    def update_value(self, y_pos):
+        normalized_pos = 1 - (y_pos - self.y) / self.height
+        self.value = self.min_value + normalized_pos * (self.max_value - self.min_value)
+        self.value = max(self.min_value, min(self.max_value, self.value))
         self.callback(self.value)
-        
+
     def set_value(self, value):
-        self.value = value
+        self.value = max(self.min_value, min(self.max_value, value))
 
 
 # We'll just assume it takes up the whole screen for now
