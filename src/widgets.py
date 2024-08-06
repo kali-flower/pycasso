@@ -10,7 +10,7 @@ class Widget:
         raise NotImplementedError("Subclass needs to define handle_event")
 
     def __init__(self):
-        self.priority = 0 # Lower means it has more priority.
+        self.priority = 0 # lower = more priority 
         active_widgets.add(self)
     
     def __del__(self):
@@ -77,13 +77,13 @@ class Slider(Widget):
         self.orient = orient
 
     def draw(self, screen):
-        # Draw track
+        # draw track
         pygame.draw.rect(screen, slider_color, (self.x, self.y, self.width, self.height))
         
-        # Calculate handle position
+        # calculate handle position
         handle_pos = self.y + (self.height - self.handle_height) * (1 - (self.value - self.min_value) / (self.max_value - self.min_value))
         
-        # Draw handle
+        # draw handle
         pygame.draw.rect(screen, slider_handle_color, (self.x, handle_pos, self.width, self.handle_height))
 
     def handle_event(self, event):
@@ -109,9 +109,7 @@ class Slider(Widget):
         self.value = max(self.min_value, min(self.max_value, value))
 
 
-# We'll just assume it takes up the whole screen for now
-# But it would be nice to not have to assume this (maybe you
-# want to leave room for a chat window later for example).
+# assume it takes up whole screen -- change later (chat window? :O)
 class Canvas(Widget):
     def __init__(self, screen, on_stroke_finish=lambda: None):
         super().__init__()

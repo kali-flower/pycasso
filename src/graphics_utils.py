@@ -21,10 +21,12 @@ def interpolate_points(start, end, distance):
 # draw function using interpolation
 def draw_line(screen, color, start, end, width):
     points = interpolate_points(start, end, 1)
+    scaled_width = width * 2  # scale the width according to the supersampled resolution
     for point in points:
-        pygame.draw.circle(screen, color, point, width // 2)
+        pygame.draw.circle(screen, color, point, scaled_width // 2)
 
-# Interpolate from a to b by percentage amt.
+
+# interpolate from a to b by percentage amt.
 # amt=0 results in a
 # amt=1 results in b
 def mix(a, b, amt):
@@ -49,7 +51,7 @@ def point_in_box(point, region, mode='corners'):
     else:
         raise ValueError(f"Invalid in_bounds mode: \"{mode}\"")
 
-    # Make x1,y1 top left and x2,y2 bottom right
+    # make x1,y1 top left and x2,y2 bottom right
     if x1 > x2: x1,x2 = x2,x1
     if y1 > y2: y1,y2 = y2,y1
     

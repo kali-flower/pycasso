@@ -65,7 +65,7 @@ def update_brush_size(tool, new_size):
     canvas.tool_sizes[tool] = round(new_size)
     if canvas.curr_tool == tool:
         canvas.set_curr_tool_size(round(new_size))
-    current_slider.set_value(new_size)  # Update the slider position
+    current_slider.set_value(new_size)  # update the slider position
 
 # set pen color function 
 def set_color(color):
@@ -94,8 +94,8 @@ def save_image():
 # create the canvas
 canvas = Canvas(super_screen)
 canvas.on_stroke_finish = canvas.save_state
-canvas.priority = 1 # Process canvas after everything else
-canvas.save_state() # Save initial blank state
+canvas.priority = 1 # process canvas after everything else
+canvas.save_state() # save initial blank state
 
 # create button instances
 clear_button = Button('Clear', 10, 10, 100, 50, canvas.clear)
@@ -140,7 +140,7 @@ rectangle_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 10
 circle_slider = Slider(slider_x, slider_y, slider_width, slider_height, 1, 100, 5,
                        lambda value: update_brush_size('circle', value))
 
-current_slider = pen_slider  # Start with pen tool selected
+current_slider = pen_slider  # start with pen tool selected
 
 def sorted_widgets():
     return sorted(active_widgets, key=lambda w: w.priority)
@@ -165,13 +165,13 @@ while running:
     # downscale supersampled image
     pygame.transform.scale(super_screen, (screen_width, screen_height), screen)
 
-    # Update button states
+    # update button states
     pen_button.is_selected = (canvas.curr_tool == 'pen')
     eraser_button.is_selected = (canvas.curr_tool == 'eraser')
     rectangle_button.is_selected = (canvas.curr_tool == 'rectangle')
     circle_button.is_selected = (canvas.curr_tool == 'circle')
 
-    # Only draw the current slider
+    # only draw the current slider
     current_slider.set_value(canvas.tool_sizes[canvas.curr_tool])
 
     # draw widgets
@@ -179,7 +179,7 @@ while running:
         if widget == current_slider or widget not in [pen_slider, eraser_slider, rectangle_slider, circle_slider]:
             widget.draw(screen)
 
-    # Draw the preview outline
+    # draw preview outline
     canvas.draw_preview_outline(screen)
 
     color_indicator.draw(screen)
