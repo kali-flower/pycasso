@@ -8,7 +8,7 @@ import copy
 # self imports
 from config import *
 from graphics_utils import *
-from widgets import Button, Slider, Canvas, active_widgets, ColorIndicator
+from widgets import darken_color, Button, Slider, Canvas, active_widgets, ColorIndicator
 
 # initialize pygame
 pygame.init()
@@ -118,7 +118,10 @@ color_indicator = ColorIndicator(900, 35, 15)
 color_buttons = []
 color_x = 10
 for color in colors:
-    color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, lambda c=color: set_color(c), color, selected_color=(max(0, color[0] - 50), max(0, color[1] - 50), max(0, color[2] - 50))))
+    color_buttons.append(Button('', color_x, screen_height - 60, 50, 50, 
+                                lambda c=color: set_color(c), 
+                                color=color, 
+                                selected_color=darken_color(color, 0.5)))
     color_x += 60
   
 # slider height and positioning

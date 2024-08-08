@@ -5,6 +5,10 @@ from collections import deque
 
 active_widgets = set()
 
+# utility function to darken colors
+def darken_color(color, factor=0.7):
+    return tuple(int(c * factor) for c in color)
+
 class Widget:
     def handle_event(self, event):
         raise NotImplementedError("Subclass needs to define handle_event")
@@ -19,36 +23,35 @@ class Widget:
 # Button class
 class Button(Widget):
     def __init__(self, text, x, y, width, height, callback, color=None, text_color=button_text_color, selected_color=None):
-        super().__init__()
-        self.text = text
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.callback = callback
-        self.font = pygame.font.Font(None, 36)
-        self.color = color  # button colors
-        self.text_color = text_color
-        self.selected_color = selected_color
-        self.hitbox_size = 10  # hitbox for better click detection 
-        self.selected_color = selected_color if selected_color else button_hover_color
-
-        self.is_selected = False
-        # active_widgets.add(self) # -> not needed, already in Widget superclass
+            super().__init__()
+            self.text = text
+            self.x = x
+            self.y = y
+            self.width = width
+            self.height = height
+            self.callback = callback
+            self.font = pygame.font.Font(None, 36)
+            self.color = color if color else button_color
+            self.text_color = text_color
+            self.selected_color = selected_color if selected_color else button_hover_color
+            self.hover_color = darken_color(self.color) if color else button_hover_color
+            self.hitbox_size = 10
+            self.is_selected = False
 
     def draw(self, screen):
         mouse_pos = pygame.mouse.get_pos()
         if self.is_selected:
             color = self.selected_color
         elif self.x - self.hitbox_size <= mouse_pos[0] <= self.x + self.width + self.hitbox_size and \
-        self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
-            color = button_hover_color
+             self.y - self.hitbox_size <= mouse_pos[1] <= self.y + self.height + self.hitbox_size:
+            color = self.hover_color
         else:
-            color = self.color if self.color else button_color
+            color = self.color
 
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height))
         text_surface = self.font.render(self.text, True, self.text_color)
-        screen.blit(text_surface, (self.x + (self.width - text_surface.get_width()) // 2, self.y + (self.height - text_surface.get_height()) // 2))
+        screen.blit(text_surface, (self.x + (self.width - text_surface.get_width()) // 2, 
+                                   self.y + (self.height - text_surface.get_height()) // 2))
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -57,7 +60,6 @@ class Button(Widget):
                 self.callback()
                 return True
         return False
-
 
 
 # Slider class
