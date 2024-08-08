@@ -1,4 +1,4 @@
-# Pycasso: A Pygame Drawing App! 
+# Pycasso: A Pygame Drawing Program! 
 
 ## Features
 * **Dynamic Pen/Eraser:** Customize the size of your pen or eraser to achieve your desired look.
