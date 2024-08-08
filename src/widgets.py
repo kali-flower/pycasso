@@ -28,7 +28,7 @@ class Button(Widget):
         self.callback = callback
         self.font = pygame.font.Font(None, 36)
         self.color = color  # button colors
-        self.text_color = text_color  # dynamic text color
+        self.text_color = text_color
         self.selected_color = selected_color
         self.hitbox_size = 10  # hitbox for better click detection 
         self.selected_color = selected_color if selected_color else button_hover_color
@@ -169,14 +169,14 @@ class Canvas(Widget):
             if curr_tool == 'pen' or curr_tool == 'eraser':
                 draw_line(self.screen, curr_color, last_pos, curr_pos, curr_width)
             elif curr_tool == 'rectangle' and start_pos:
-                screen.blit(curr_state, (0, 0))  # restore the screen to the state before drawing the shape
+                screen.blit(curr_state, (0, 0))  # restore screen to state before drawing the shape
                 rect_x = min(sx, cx)  # calculate the top-left x coordinate
                 rect_y = min(sy, cy)  # calculate the top-left y coordinate
                 rect_width = abs(cx - sx)  # calculate the width
                 rect_height = abs(cy - sy)  # calculate the height
                 pygame.draw.rect(screen, curr_color, (rect_x, rect_y, rect_width, rect_height), curr_width // 2)
             elif curr_tool == 'circle' and start_pos:
-                screen.blit(curr_state, (0, 0))  # restore the screen to the state before drawing the shape
+                screen.blit(curr_state, (0, 0))  # restore screen to state before drawing the shape
                 radius = int(math.hypot(cx - sx, cy - sy))
                 pygame.draw.circle(screen, curr_color, start_pos, radius, curr_width // 2)
             
@@ -255,4 +255,3 @@ class ColorIndicator(Widget):
 
     def handle_event(self, event):
         return False
-

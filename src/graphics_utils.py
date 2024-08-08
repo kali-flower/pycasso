@@ -27,8 +27,8 @@ def draw_line(screen, color, start, end, width):
 
 
 # interpolate from a to b by percentage amt.
-# amt=0 results in a
-# amt=1 results in b
+# amt=0 -> a
+# amt=1 -> b
 def mix(a, b, amt):
     return a + (b-a)*amt
 

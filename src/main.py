@@ -65,13 +65,13 @@ def update_brush_size(tool, new_size):
     canvas.tool_sizes[tool] = round(new_size)
     if canvas.curr_tool == tool:
         canvas.set_curr_tool_size(round(new_size))
-    current_slider.set_value(new_size)  # update the slider position
+    current_slider.set_value(new_size)  # update slider position
 
 # set pen color function 
 def set_color(color):
     global canvas
     canvas.pen_color = color
-    color_indicator.update_color(color)  # updates the color indicator
+    color_indicator.update_color(color)  # update color indicator
     # reset button colors
     pen_button.color = button_color  
     eraser_button.color = button_color
@@ -81,7 +81,7 @@ def set_color(color):
 # button to save image as a png 
 def save_image():
     root = tk.Tk()
-    root.withdraw()  # hide the root window
+    root.withdraw()  # hide root window
     filename = simpledialog.askstring("Save Image", "Enter filename (without extension):")
     
     if filename:  # only save if a filename was provided
