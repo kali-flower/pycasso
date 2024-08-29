@@ -121,7 +121,7 @@ def event_loop():
 
 async def run_game():
     while event_loop():
-        await asyncio.sleep(0.01) # give websocket chance to run 
+        await asyncio.sleep(0.01) # give websocket chance to run, (can also have this at 0.01)
     pygame.quit()
     shutdown_event.set()
 
