@@ -1,2 +1,4 @@
 # Ignore PNG files (saved drawings)
 *.png
+client_test.py
+server_test.py

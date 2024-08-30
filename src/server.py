@@ -1,10 +1,6 @@
 import asyncio
 import websockets
 from collections import deque
-import logging
-
-# add logging
-logging.basicConfig(filename='server.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 CONNECTIONS = {}
 next_id = 0
@@ -12,16 +8,12 @@ next_id = 0
 async def handle_client(websocket):
     global next_id, CONNECTIONS 
 
-    # access client_id
+    # As I understand, accessing client_id like this is safe.
     client_id = next_id
     next_id += 1
 
-    # add client to connections dictionary 
     CONNECTIONS[client_id] = websocket
-    print(f"Client {client_id} connected")
-
-    CONNECTIONS[client_id] = websocket
-    # wait for websocket.send(f"You are client {client_id}")
+    # await websocket.send(f"You are client {client_id}")
     try:
         async for message in websocket:
             others = [ws for cid,ws in CONNECTIONS.items() if cid != client_id]
@@ -31,7 +23,7 @@ async def handle_client(websocket):
     else:
         print("Client closed the connection gracefully")
     
-    # remove websocket from connections
+    # remove this websocket from connections
     del CONNECTIONS[client_id]
 
 async def main():

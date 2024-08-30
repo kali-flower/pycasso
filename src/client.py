@@ -4,42 +4,24 @@ import asyncio
 import websockets
 from collections import deque
 import json
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 websocket = None
 shutdown_event = asyncio.Event()
 draw_inbox  = deque()
 draw_outbox = deque()
-
 async def ws_connect(uri):
     global websocket, shutdown_event, draw_inbox, draw_outbox
-    try:
-        async with websockets.connect(uri) as ws:
-            websocket = ws
-            logging.info("Connected to WebSocket server.")
-            while not shutdown_event.is_set():
-                try:
-                    # send messages
-                    while draw_outbox:
-                        val = draw_outbox.popleft()
-                        await ws.send(json.dumps(val))
+    async with websockets.connect(uri) as ws:
+        websocket = ws
+        while not shutdown_event.is_set():
+            try:
+                while draw_outbox:
+                    val = draw_outbox.popleft()
+                    await ws.send(json.dumps(val))
 
-                    # receive messages
-                    message = await asyncio.wait_for(ws.recv(), timeout=1)
-                    draw_inbox.append(json.loads(message))
-
-                except asyncio.TimeoutError:
-                    continue  # no message received in the timeout period
-                except websockets.ConnectionClosed:
-                    logging.error("WebSocket connection closed.")
-                    break
-                except Exception as e:
-                    logging.error(f"Unexpected error: {e}")
-                    break
-    except Exception as e:
-        logging.error(f"Could not connect to WebSocket server: {e}")
+                message = await asyncio.wait_for(ws.recv(), timeout=1)
+                draw_inbox.append(json.loads(message))
+            except: continue
 
 pen_color = (0,0,0)
 pen_width = 15
@@ -64,7 +46,8 @@ def custom_line(p1, p2):
     y_lo = min(y1,y2) - pen_width
     y_hi = max(y1,y2) + pen_width
 
-    # doing logic from https://iquilezles.org/articles/distfunctions2d/ - search "Segment - exact" or "sdSegment" from ^
+    # Doing the logic from https://iquilezles.org/articles/distfunctions2d/
+    # Search "Segment - exact" or "sdSegment" from ^
     vecs = np.dstack(np.mgrid[x_lo:x_hi+1:1, y_lo:y_hi+1:1])
     pa = vecs - p1
     ba = np.array(p2) - np.array(p1)
@@ -77,11 +60,11 @@ def custom_line(p1, p2):
     delta = pa - ba*h
     sdf_vals = np.hypot(delta[:,:,0], delta[:,:,1]) - pen_width
 
-    # convert sdf values to an alpha mask.
+    # Converting sdf values to an alpha mask.
     sdf_vals = 255 * (1 - np.clip(sdf_vals, 0, 1))
     sdf_vals = sdf_vals.astype(np.uint8)
     
-    surf = pygame.Surface(sdf_vals.shape, pygame.SRCALPHA, 32)  # Pygame surface with alpha channel, black background by default
+    surf = pygame.Surface(sdf_vals.shape, pygame.SRCALPHA, 32)  # Pygame Surface with alpha channel, black background by default
     pygame.surfarray.pixels_alpha(surf)[:] = sdf_vals
     screen.blit(surf, (x_lo,y_lo))
 
@@ -91,7 +74,7 @@ class Canvas:
 
 canvas = Canvas(paint_active=False, last_pos=None)
 
-# return false if quitting Pygame
+# Return False if we quit pygame. True otherwise.
 def event_loop():
     global screen, canvas
 
@@ -121,7 +104,7 @@ def event_loop():
 
 async def run_game():
     while event_loop():
-        await asyncio.sleep(0.01) # give websocket chance to run, (can also have this at 0.01)
+        await asyncio.sleep(0.001) # Give the websocket a chance to run
     pygame.quit()
     shutdown_event.set()
 
