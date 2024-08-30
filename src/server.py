@@ -12,6 +12,10 @@ async def handle_client(websocket):
     client_id = next_id
     next_id += 1
 
+    # add client to connections dictionary 
+    CONNECTIONS[client_id] = websocket
+    print(f"Client {client_id} connected")
+
     CONNECTIONS[client_id] = websocket
     # wait for websocket.send(f"You are client {client_id}")
     try:
