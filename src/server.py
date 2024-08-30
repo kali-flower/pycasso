@@ -1,6 +1,10 @@
 import asyncio
 import websockets
 from collections import deque
+import logging
+
+# add logging
+logging.basicConfig(filename='server.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 CONNECTIONS = {}
 next_id = 0
