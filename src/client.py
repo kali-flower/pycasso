@@ -110,8 +110,9 @@ async def run_game():
 
 async def main():
     game_task = asyncio.create_task(run_game())
-    ws_task   = asyncio.create_task(ws_connect("ws://localhost:8000"))
-    # ws_task   = asyncio.create_task(ws_connect("ws://1.2.3.4:8000"))
+    # use the public DNS of EC2 instance
+    ws_task = asyncio.create_task(ws_connect("ws://ec2-54-219-209-33.us-west-1.compute.amazonaws.com:8000"))
     await asyncio.gather(game_task, ws_task)
+
 
 asyncio.run(main())
